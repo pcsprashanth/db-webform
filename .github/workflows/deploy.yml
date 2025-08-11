@@ -9,9 +9,14 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read  # Ensures access to repo contents
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Ensures full history is available
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -27,12 +32,17 @@ jobs:
       run: |
         npm install -g azure-functions-core-tools@4 --unsafe-perm true
 
+    - name: Debug AZURE_CREDENTIALS format
+      run: echo "$AZURE_CREDENTIALS" | jq .
+      env:
+        AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
     - name: Deploy to Azure Function App
       env:
         AZURE_FUNCTIONAPP_NAME: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
         AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
       run: |
-        echo "${{ secrets.AZURE_CREDENTIALS }}" > credentials.json
+        echo "${AZURE_CREDENTIALS}" > credentials.json
         az login --service-principal --username $(jq -r .clientId credentials.json) \
                  --password $(jq -r .clientSecret credentials.json) \
                  --tenant $(jq -r .tenantId credentials.json)

@@ -1,5 +1,5 @@
 import logging
-import azure.functions as func
+import azure.functions as func # type: ignore
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.sql import SqlManagementClient
